@@ -1,104 +1,100 @@
 package GameMechanics;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Grid {
 
-    private static int[][] gameGrid = new int[6][7];
+    final int xSize = 7;
+    final int ySize = 6;
+    public int[] lastPlayed;
+    ArrayList<Integer> posMoves = new ArrayList<>(xSize);
+    private static int[][] gameGrid;
 
-    public static void printGrid() {
+    public Grid() {
+        gameGrid = new int[ySize][xSize];
+        for (int i = 0; i < xSize; i++) {
+            posMoves.add(i);
+        }
+    }
+
+    public void printGrid() {
         System.out.println("\n");
         for (int[] line : gameGrid) {
             System.out.println(Arrays.toString(line));
         }
     }
 
-    protected static int checkPosition(int n, int m) {
-        return gameGrid[n][m];
+    public int checkPosition(int x, int y) {
+        return gameGrid[y][x];
     }
 
-    protected static int checkPosition(int position) {
-        int n = (position <= 7) ? 0
-        : (position <= 14) ? 1
-        : (position <= 21) ? 2
-        : (position <= 28) ? 3
-        : (position <= 35) ? 4 : 5;  
+    public int placePosition(int position, int player) {
+        lastPlayed = new int[2];
+        int x = position;
+        int y = 0;
 
-        int m = ((position-1)%7==0) ? 0
-        : ((position-2)%7==0) ? 1
-        : ((position-3)%7==0) ? 2
-        : ((position-4)%7==0) ? 3
-        : ((position-5)%7==0) ? 4
-        : ((position-6)%7==0) ? 5 : 6;
+        if (gameGrid[y][x] != 0) { return -1; }
 
-        return gameGrid[n][m];
-    }
-
-    public static void placePosition(int position, int player) {
-        int m = position-1;
-
-        int n = 0;
-        for (int i = 5; i > 0; i--) {
-            if (checkPosition(i, m)==0) {
-                n=i;
+        for (int yIndex = 5; yIndex > 0; yIndex--) {
+            if (checkPosition(x, yIndex) == 0) {
+                y = yIndex;
                 break;
             }
         }
 
-        // int n = (position <= 7) ? 0
-        // : (position <= 14) ? 1
-        // : (position <= 21) ? 2
-        // : (position <= 28) ? 3
-        // : (position <= 35) ? 4 : 5;  
-
-        // int m = ((position-1)%7==0) ? 0
-        // : ((position-2)%7==0) ? 1
-        // : ((position-3)%7==0) ? 2
-        // : ((position-4)%7==0) ? 3
-        // : ((position-5)%7==0) ? 4
-        // : ((position-6)%7==0) ? 5 : 6;
-
-        gameGrid[n][m] = player;
+        if (y == 0) {posMoves.remove(x);}
+        gameGrid[y][x] = player;
+        lastPlayed[0] = y;
+        lastPlayed[1] = x;
+        return 1;
     }
 
-    public static int checkWin() {
-        int winValue = 0;
+    public ArrayList<Integer> getPosMoves() {
+        return posMoves;
+    }
+
+    public int checkWin() {
         //checks for HORIZONTAL wins
-        for (int n = 5; n >= 0; n--) { 
-            for (int m = 0; m < 4; m++) {
-                if (checkPosition(n, m)!=0 && checkPosition(n, m)==checkPosition(n, m+1) && checkPosition(n, m+1)==checkPosition(n, m+2) && checkPosition(n, m+2)==checkPosition(n, m+3)) {
-                    winValue = 1;
-                    break;
+        for (int y = 5; y >= 0; y--) { 
+            for (int x = 0; x < 4; x++) {
+                if (checkPosition(x, y)!=0 && checkPosition(x, y)==checkPosition(x+1, y) && checkPosition(x+1, y)==checkPosition(x+2, y) && checkPosition(x+2, y)==checkPosition(x+3, y)) {
+                    return 1;
                 }
             }
         }
 
         //checks for VERTICAL wins
-        for (int m = 0; m < 7; m++) { 
-            for (int n = 5; n > 2; n--) {
-                if (checkPosition(n, m)!=0 && checkPosition(n, m)==checkPosition(n-1, m) && checkPosition(n-1, m)==checkPosition(n-2, m) && checkPosition(n-2, m)==checkPosition(n-3, m)) {
-                    winValue = 1;
-                    break;
+        for (int x = 0; x < 7; x++) { 
+            for (int y = 5; y > 2; y--) {
+                if (checkPosition(x, y)!=0 && checkPosition(x, y)==checkPosition(x, y-1) && checkPosition(x, y-1)==checkPosition(x, y-2) && checkPosition(x, y-2)==checkPosition(x, y-3)) {
+                    return 1;
                 }
             }
         }
 
         //checks for DIAGONAL wins
-        for (int m = 0; m < 4; m++) { 
-            for (int n = 0; n < 3; n++) {
-                if (checkPosition(n, m)!=0 && checkPosition(n, m)==checkPosition(n+1, m+1) && checkPosition(n+1, m+1)==checkPosition(n+2, m+2) && checkPosition(n+2, m+2)==checkPosition(n+3, m+3)) {
-                    winValue = 1;
-                    break;
+        for (int x = 0; x < 4; x++) { 
+            for (int y = 0; y < 3; y++) {
+                if (checkPosition(x, y)!=0 && checkPosition(x, y)==checkPosition(x+1, y+1) && checkPosition(x+1, y+1)==checkPosition(x+2, y+2) && checkPosition(x+2, y+2)==checkPosition(x+3, y+3)) {
+                    return 1;
                 }
             }
         }
-        for (int m = 6; m >= 3; m--) { 
-            for (int n = 0; n < 3; n++) {
-                if (checkPosition(n, m)!=0 && checkPosition(n, m)==checkPosition(n+1, m-1) && checkPosition(n+1, m-1)==checkPosition(n+2, m-2) && checkPosition(n+2, m-2)==checkPosition(n+3, m-3)) {
-                    winValue = 1;
-                    break;
+        for (int x = 6; x >= 3; x--) { 
+            for (int y = 0; y < 3; y++) {
+                if (checkPosition(x, y)!=0 && checkPosition(x, y)==checkPosition(x-1, y+1) && checkPosition(x-1, y+1)==checkPosition(x-2, y+2) && checkPosition(x-2, y+2)==checkPosition(x-3, y+3)) {
+                    return 1;
                 }
             }
         }
-        return winValue;
+
+        for (int y = 0; y < ySize; y++) {
+            for (int x = 0; x < xSize; x++) {
+                if (checkPosition(x, y) == 0) {
+                    return -1;
+                }
+            }
+        }
+        return 0;
     }
 }

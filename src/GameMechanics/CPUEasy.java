@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class CPUEasy {
+
+    private ArrayList<Integer> posMoves;
+
+    public CPUEasy(ArrayList<Integer> posMoves) {
+        this.posMoves = posMoves;
+    }
     
-    public static int play(int player) {
-        ArrayList<Integer> positions = new ArrayList<Integer>();
-        positions.add(1);positions.add(2);positions.add(3);positions.add(4);positions.add(5);positions.add(6);
-    
+    public int play(int player) {
+        System.out.println("\n" + posMoves);
         Random rand = new Random();
         int pos;
-        int n = rand.nextInt(positions.size());
-        pos = positions.get(n);
+        int n = rand.nextInt(posMoves.size());
+        pos = posMoves.get(n);
+        System.out.println("Position played: " + pos);
         return pos;
     }
 }
