@@ -1,19 +1,35 @@
 package CPUPlayers;
 
 import java.util.ArrayList;
+import java.util.Random;
+
+import GameMechanics.Grid;
 
 public class CPUPerfect extends CPUPlayer{
 
     ArrayList<Integer> posMoves;
+    Grid grid;
 
-    public CPUPerfect(ArrayList<Integer> posMoves) {
-        super(posMoves);
+    int maxPlayer;
+
+    public CPUPerfect(Grid grid, ArrayList<Integer> posMoves, int maxPlayer) {
+        this.grid = grid;
+        this.posMoves = new ArrayList<>(posMoves);
+        this.maxPlayer = maxPlayer;
     }
 
     @Override
-    public int play(int player) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'play'");
+    public int play() {
+        // if (player == 1) {
+        //     Random rand = new Random();
+        //     int pos = rand.nextInt(0, 7);
+        //     return pos;
+        // }
+        return minimax(maxPlayer, grid.copy());
+    }
+
+    private int minimax(int maxPlayer, Grid state) {
+        return 0;
     }
     
 }

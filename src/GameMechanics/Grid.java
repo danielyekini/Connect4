@@ -8,7 +8,7 @@ public class Grid {
     final int ySize = 6;
     public int[] lastPlayed;
     ArrayList<Integer> posMoves = new ArrayList<>(xSize);
-    private static int[][] gameGrid;
+    private int[][] gameGrid;
 
     public Grid() {
         gameGrid = new int[ySize][xSize];
@@ -56,6 +56,16 @@ public class Grid {
         return posMoves;
     }
 
+    public Grid copy() {
+        Grid copyGrid = new Grid();
+        for (int y = 0; y < ySize; y++) {
+            for (int x = 0; x < xSize; x++) {
+                copyGrid.gameGrid[y][x] = this.gameGrid[y][x];
+            }
+        }
+        return copyGrid;
+    }
+
     public int checkWin() {
         //checks for HORIZONTAL wins
         for (int y = 5; y >= 0; y--) { 
@@ -94,10 +104,10 @@ public class Grid {
         for (int y = 0; y < ySize; y++) {
             for (int x = 0; x < xSize; x++) {
                 if (checkPosition(x, y) == 0) {
-                    return -1;
+                    return 0;
                 }
             }
         }
-        return 0;
+        return -1;
     }
 }

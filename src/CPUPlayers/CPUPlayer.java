@@ -7,13 +7,7 @@ import java.util.ArrayList;
  */
 public abstract class CPUPlayer {
 
-    private ArrayList<Integer> posMoves;
-
-    public CPUPlayer(ArrayList<Integer> posMoves) {
-        this.posMoves = posMoves;
-    }
-
-    public abstract int play(int player);
+    public abstract int play();
 
 
 }
