@@ -42,7 +42,10 @@ public class Grid {
             }
         }
 
-        if (y == 0) {posMoves.remove(x);}
+        if (y == 0) {
+            System.out.println("Removing: " + x);
+            posMoves.remove(Integer.valueOf(x));
+        }
         gameGrid[y][x] = player;
         lastPlayed[0] = y;
         lastPlayed[1] = x;

@@ -1,7 +1,6 @@
 package GameGUI;
 
 import javax.swing.*;
-import javax.swing.border.*;
 
 import GameMechanics.GameControl;
 import GameMechanics.Grid;
@@ -18,15 +17,20 @@ public class GUI {
     private int xsize = 7;
     private int ysize = 6;
     private int currentPlayer = 1;
-    private Color player1Color = Color.RED;
-    private Color player2Color = Color.YELLOW;
+    private boolean newGame;
+    private int user = 1;
+    private Color player1Color = Color.RED, player2Color = Color.YELLOW;
+    private Color userColor, cpuColor;
     //making of grid and logic
     Grid grid;
     GameControl control; //create game logic controller
 
-    public GUI(GameControl control, Grid grid) {
+    public GUI(GameControl control, Grid grid, int userPlayer) {
         this.control = control;
         this.grid = grid;
+        newGame = false;
+
+        setPlayers(userPlayer);
 
         frame = new JFrame("connect four");
 
@@ -40,10 +44,10 @@ public class GUI {
             buttons[i] = new JButton("");
             JButton button = buttons[i];
             button.setBackground(Color.WHITE);
-            button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            button.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3));
             button.addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    button.setBackground(player1Color);
+                    button.setBackground(userColor);
                 }
             
                 public void mouseExited(java.awt.event.MouseEvent evt) {
@@ -57,9 +61,12 @@ public class GUI {
                         public void actionPerformed(ActionEvent e) {
                             currentPlayer = control.currentPlayer;
                             int a = Integer.parseInt(e.getActionCommand());
-                            if (control.placePosition(a, currentPlayer) == 1) {
+                            int userPlay = control.placePosition(a, currentPlayer);
+                            if (userPlay == 1 && newGame == false) {
                                 control.cpuMove();
-                            } else {
+                            } else if (newGame) {
+                                return;
+                            }else {
                                 JOptionPane.showMessageDialog(null, "choose another one", "column is filled", JOptionPane.INFORMATION_MESSAGE);
                             }
                         }
@@ -70,7 +77,7 @@ public class GUI {
             for (int row = 0; row < xsize; row++) {
                 slots[row][column] = new JLabel();
                 slots[row][column].setHorizontalAlignment(SwingConstants.CENTER);
-                slots[row][column].setBorder(new LineBorder(Color.blue));
+                slots[row][column].setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
                 panel.add(slots[row][column]);
             }
         }
@@ -87,10 +94,10 @@ public class GUI {
     public void updateBoard() {//keeps the gui in sync with the logggggtjiic and grid
         int row = grid.lastPlayed[1], column = grid.lastPlayed[0];
         slots[row][column].setOpaque(true);
-        if (currentPlayer == 1) {
-            slots[row][column].setBackground(player1Color);
+        if (currentPlayer == user) {
+            slots[row][column].setBackground(userColor);
         } else {
-            slots[row][column].setBackground(player2Color);
+            slots[row][column].setBackground(cpuColor);
         }
     }
 
@@ -103,6 +110,7 @@ public class GUI {
                 JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
             frame.dispose();
+            newGame = true;
             control.newGame();
         } else {
             frame.dispose();
@@ -119,6 +127,7 @@ public class GUI {
                 JOptionPane.YES_NO_OPTION);
         if (n == JOptionPane.YES_OPTION) {
             frame.dispose();
+            newGame = true;
             control.newGame();
         } else {
             frame.dispose();
@@ -126,11 +135,21 @@ public class GUI {
         }
     }
 
+    public void setPlayers(int userPlayer) {
+        if (userPlayer == 0) {
+            System.exit(0);
+        } else if (userPlayer == 1) {
+            userColor = player1Color;
+            cpuColor = player2Color;
+            user = 1;
+        } else {
+            userColor = player2Color;
+            cpuColor = player1Color;
+            user = 2;
+        }
+    }
+
     public void changeCurrentPlayer(int newPlayer) {
         currentPlayer = newPlayer;
     }
-
-    // public static void main(String[] args) {
-    //     GUI gui = new GUI();
-    // }
 }

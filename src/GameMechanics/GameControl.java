@@ -1,21 +1,46 @@
 package GameMechanics;
-import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
+import CPUPlayers.*;
 import GameGUI.GUI;
 
 public class GameControl {
     
     Grid grid;
     GUI game;
-    CPUEasy cpu;
+    CPUPlayer cpu;
+
+    private boolean newGame = false;
     
     public int currentPlayer;
 
     public void start() {
         currentPlayer = 1;
         grid = new Grid();
-        cpu = new CPUEasy(grid.getPosMoves());
-        game = new GUI(this, grid);
+        int difficulty = pickDifficulty();
+        cpu = (difficulty == 0) ? new CPUEasy(grid.getPosMoves()) : new CPUPerfect(grid.getPosMoves());
+        int userPlayer = pickPlayer() + 1;
+        game = new GUI(this, grid, userPlayer);
+        if (userPlayer == 2) {
+            cpuMove();
+        }
+    }
+
+    public int pickDifficulty() {
+        String[] options = {"Easy", "Hard"};
+        int choice = JOptionPane.showOptionDialog(
+            null, "Pick Difficulty", "Pick Difficulty", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+        
+        return choice;
+    }
+
+    public int pickPlayer() {
+        String[] options = {"Player 1 (Red)", "Player 2 (Yellow)"};
+        int choice = JOptionPane.showOptionDialog(
+            null, "Choose Player", "Choose Player", JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+        
+        return choice;
     }
 
     public void cpuMove() {
@@ -27,6 +52,10 @@ public class GameControl {
             game.updateBoard();
             grid.printGrid();
             checkWin();
+            if (newGame) {
+                newGame = false;
+                return 0;
+            }
             changePlayer();
             return 1;
         }
@@ -48,6 +77,7 @@ public class GameControl {
     }
 
     public void newGame() {
+        newGame = true;
         grid = null;
         cpu = null;
         game = null;
