@@ -6,15 +6,11 @@ public class Grid {
 
     final int xSize = 7;
     final int ySize = 6;
-    public int[] lastPlayed;
-    ArrayList<Integer> posMoves = new ArrayList<>(xSize);
+    public int[] lastPlayed = new int[2];
     private int[][] gameGrid;
 
     public Grid() {
         gameGrid = new int[ySize][xSize];
-        for (int i = 0; i < xSize; i++) {
-            posMoves.add(i);
-        }
     }
 
     public void printGrid() {
@@ -28,12 +24,29 @@ public class Grid {
         return gameGrid[y][x];
     }
 
-    public int placePosition(int position, int player) {
-        lastPlayed = new int[2];
+    private int[] getPositions(int position) {
         int x = position;
         int y = 0;
+        
+        for (int yIndex = 5; yIndex > 0; yIndex--) {
+            if (checkPosition(x, yIndex) == 0) {
+                y = yIndex;
+                break;
+            }
+        }
 
-        if (gameGrid[y][x] != 0) { return -1; }
+        int[] positions = {x, y};
+
+        return positions;
+    }
+
+    public int placePosition(int position, int player) {
+        if (gameGrid[0][position] != 0) { return -1; }
+
+        int[] positions = getPositions(position);
+
+        int x = lastPlayed[1] = positions[0];
+        int y = lastPlayed[0] = positions[1];
 
         for (int yIndex = 5; yIndex > 0; yIndex--) {
             if (checkPosition(x, yIndex) == 0) {
@@ -42,17 +55,40 @@ public class Grid {
             }
         }
 
-        if (y == 0) {
-            System.out.println("Removing: " + x);
-            posMoves.remove(Integer.valueOf(x));
-        }
         gameGrid[y][x] = player;
-        lastPlayed[0] = y;
-        lastPlayed[1] = x;
         return 1;
     }
 
-    public ArrayList<Integer> getPosMoves() {
+    public void clearPosition(int positionX) {
+        int x = positionX;
+        
+        for (int y = 0; y < ySize; y++) {
+            if (checkPosition(x, y) != 0) {
+                gameGrid[y][x] = 0;
+                return;
+            }
+        }
+    }
+
+    public int numPositionsLeft () {
+        int count = 0;
+        for (int y = 0; y < ySize; y++) {
+            for (int x = 0; x < xSize; x++) {
+                if (gameGrid[y][x] == 0) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public ArrayList<Integer> posMoves() {
+        ArrayList<Integer> posMoves = new ArrayList<>();
+        for (int x = 0; x < xSize; x++) {
+            if (gameGrid[0][x] == 0) {
+                posMoves.add(x);
+            }
+        }
         return posMoves;
     }
 
@@ -101,12 +137,9 @@ public class Grid {
             }
         }
 
-        for (int y = 0; y < ySize; y++) {
-            for (int x = 0; x < xSize; x++) {
-                if (checkPosition(x, y) == 0) {
-                    return 0;
-                }
-            }
+        //checks for Draw
+        if (posMoves().size() == 0) {
+            return 0;
         }
         return -1;
     }

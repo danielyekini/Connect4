@@ -14,8 +14,8 @@ public class GUI {
     private JLabel[][] slots;
     private JButton[] buttons;
     //variables used in grid
-    private int xsize = 7;
-    private int ysize = 6;
+    private int xSize = 7;
+    private int ySize = 6;
     private int currentPlayer = 1;
     private boolean newGame;
     private int user = 1;
@@ -35,12 +35,12 @@ public class GUI {
         frame = new JFrame("connect four");
 
         JPanel panel = (JPanel) frame.getContentPane();
-        panel.setLayout(new GridLayout(xsize, ysize + 1));
+        panel.setLayout(new GridLayout(xSize, ySize + 1));
 
-        slots = new JLabel[xsize][ysize];
-        buttons = new JButton[xsize];
+        slots = new JLabel[xSize][ySize];
+        buttons = new JButton[xSize];
 
-        for (int i = 0; i < xsize; i++) {
+        for (int i = 0; i < xSize; i++) {
             buttons[i] = new JButton("");
             JButton button = buttons[i];
             button.setBackground(Color.WHITE);
@@ -73,11 +73,16 @@ public class GUI {
                     });
             panel.add(buttons[i]);
         }
-        for (int column = 0; column < ysize; column++) {
-            for (int row = 0; row < xsize; row++) {
+        for (int column = 0; column < ySize; column++) {
+            for (int row = 0; row < xSize; row++) {
                 slots[row][column] = new JLabel();
                 slots[row][column].setHorizontalAlignment(SwingConstants.CENTER);
                 slots[row][column].setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
+                slots[row][column].setOpaque(true);
+                int position = grid.checkPosition(row, column);
+                Color slotColor = (position == 1) ? Color.RED : 
+                    (position == 2) ? Color.YELLOW : Color.WHITE;
+                slots[row][column].setBackground(slotColor);
                 panel.add(slots[row][column]);
             }
         }
@@ -93,7 +98,6 @@ public class GUI {
 
     public void updateBoard() {//keeps the gui in sync with the logggggtjiic and grid
         int row = grid.lastPlayed[1], column = grid.lastPlayed[0];
-        slots[row][column].setOpaque(true);
         if (currentPlayer == user) {
             slots[row][column].setBackground(userColor);
         } else {
