@@ -1,6 +1,7 @@
 package GameMechanics;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import CPUPlayers.*;
 import GameGUI.GUI;
@@ -23,10 +24,12 @@ public class GameControl {
         userPlayer = pickPlayer() + 1;
         cpuPlayer = (userPlayer == 1) ? 2 : 1;
         cpu = (difficulty == 0) ? new CPUEasy(grid) : new CPUPerfect(grid, cpuPlayer);
-        game = new GUI(this, grid, userPlayer);
-        if (userPlayer == 2) {
-            cpuMove();
-        }
+        SwingUtilities.invokeLater(() -> {
+            game = new GUI(this, grid, userPlayer);
+            if (userPlayer == 2) {
+                cpuMoveWithDelay();
+            }
+        });
     }
 
     public int pickPlayer() {
@@ -47,6 +50,18 @@ public class GameControl {
 
     public void cpuMove() {
         placePosition(cpu.play(), currentPlayer);
+    }
+
+    public void cpuMoveWithDelay() {
+        new Thread(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            int move = cpu.play();
+            SwingUtilities.invokeLater(() -> placePosition(move, currentPlayer));
+        }).start();
     }
 
     public int placePosition(int position, int player) {
@@ -85,41 +100,4 @@ public class GameControl {
         game = null;
         start();
     }
-
-
-    // public void start() {
-    //     currentPlayer = 1;
-    //     grid = new Grid();
-
-    //     int difficulty = Input.Integer("Choose difficulty 1(easy) 2(hard): ");
-    //     int userPlayer = Input.Integer("Choose player 1/2: ");
-    //     int cpuPlayer = (userPlayer == 1) ? 2 : 1;
-    //     cpu = (difficulty == 1) ? new CPUEasy(grid) : new CPUPerfect(grid, cpuPlayer);
-        
-    //     while (grid.checkWin() == -1) {
-
-    //         grid.printGrid();
-
-    //         if (currentPlayer == userPlayer) {
-    //             grid.placePosition(Input.Integer("Select Position (1-7): "), userPlayer);
-    //         } 
-    //         else {
-    //             grid.placePosition(cpu.play(), cpuPlayer);
-    //         }
-            
-    //         currentPlayer = (currentPlayer==userPlayer) ? cpuPlayer : userPlayer;
-    //     }
-    //     grid.printGrid();
-    //     int win = grid.checkWin();
-    //     if (win == 1) {
-    //         String winner = (currentPlayer == userPlayer) ? "cpu" : "user";
-    //         System.out.println("\n" + winner + " Wins!");
-    //     } else if (win == 0) {
-    //         System.out.println("\nDRAW!!!");
-    //     }
-        // grid = new Grid();
-        // int cpuPlayer = 2;
-        // cpu = new CPUPerfect(grid, cpuPlayer);
-        // System.out.println(cpu.play());
-    // }
 }

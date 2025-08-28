@@ -35,7 +35,7 @@ public class GUI {
         frame = new JFrame("connect four");
 
         JPanel panel = (JPanel) frame.getContentPane();
-        panel.setLayout(new GridLayout(xSize, ySize + 1));
+        panel.setLayout(new GridLayout(ySize + 1, xSize));
 
         slots = new JLabel[xSize][ySize];
         buttons = new JButton[xSize];
@@ -62,8 +62,8 @@ public class GUI {
                             currentPlayer = control.currentPlayer;
                             int a = Integer.parseInt(e.getActionCommand());
                             int userPlay = control.placePosition(a, currentPlayer);
-                            if (userPlay == 1 && newGame == false) {
-                                control.cpuMove();
+                            if (userPlay == 1 && !newGame) {
+                                control.cpuMoveWithDelay();
                             } else if (newGame) {
                                 return;
                             }else {
@@ -96,60 +96,50 @@ public class GUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void updateBoard() {//keeps the gui in sync with the logggggtjiic and grid
-        int row = grid.lastPlayed[1], column = grid.lastPlayed[0];
+    public void updateBoard() { // keeps the gui in sync with the logic and grid
+        int x = grid.lastPlayed[1], y = grid.lastPlayed[0];
         if (currentPlayer == user) {
-            slots[row][column].setBackground(userColor);
+            slots[x][y].setBackground(userColor);
         } else {
-            slots[row][column].setBackground(cpuColor);
+            slots[x][y].setBackground(cpuColor);
+        }
+    }
+
+    private void showEndGame(String message) {
+        int n = JOptionPane.showConfirmDialog(
+                frame,
+                "new game?",
+                message,
+                JOptionPane.YES_NO_OPTION);
+        if (n == JOptionPane.YES_OPTION) {
+            frame.dispose();
+            newGame = true;
+            control.newGame();
+        } else {
+            frame.dispose();
+            System.exit(0);
         }
     }
 
     public void showWon() {
-        String winner = "player " + currentPlayer + " wins";
-        int n = JOptionPane.showConfirmDialog(
-                frame,
-                "new game?",
-                winner,
-                JOptionPane.YES_NO_OPTION);
-        if (n == JOptionPane.YES_OPTION) {
-            frame.dispose();
-            newGame = true;
-            control.newGame();
-        } else {
-            frame.dispose();
-            System.exit(0);
-        }
+        showEndGame("player " + currentPlayer + " wins");
     }
 
     public void showDraw() {
-        String winner = "draw game";
-        int n = JOptionPane.showConfirmDialog(
-                frame,
-                "new game?",
-                winner,
-                JOptionPane.YES_NO_OPTION);
-        if (n == JOptionPane.YES_OPTION) {
-            frame.dispose();
-            newGame = true;
-            control.newGame();
-        } else {
-            frame.dispose();
-            System.exit(0);
-        }
+        showEndGame("draw game");
     }
 
     public void setPlayers(int userPlayer) {
-        if (userPlayer == 0) {
-            System.exit(0);
-        } else if (userPlayer == 1) {
+        if (userPlayer == 1) {
             userColor = player1Color;
             cpuColor = player2Color;
             user = 1;
-        } else {
+        } else if (userPlayer == 2) {
             userColor = player2Color;
             cpuColor = player1Color;
             user = 2;
+        } else {
+            throw new IllegalArgumentException("userPlayer must be 1 or 2");
         }
     }
 

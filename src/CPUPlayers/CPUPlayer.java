@@ -1,7 +1,5 @@
 package CPUPlayers;
 
-import java.util.ArrayList;
-
 import GameMechanics.Grid;
 
 /**

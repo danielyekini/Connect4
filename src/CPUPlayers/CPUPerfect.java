@@ -1,104 +1,196 @@
 package CPUPlayers;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
+import GameMechanics.BitBoard;
 import GameMechanics.Grid;
 
-public class CPUPerfect extends CPUPlayer{
+/**
+ * Strong CPU player using a minimax search with alpha-beta pruning, bitboards,
+ * transposition table and iterative deepening. The previous implementation
+ * relied on a hack to play the centre moves; the enhanced engine is able to
+ * calculate those by itself.
+ */
+public class CPUPerfect extends CPUPlayer {
 
-    Grid grid;
+    private final Grid grid;
+    private final int maxPlayer;
+    private final int oppPlayer;
 
-    int maxPlayer;
-    int oppPlayer;
-    int bestMove;
-    int depth = 8;
-    int firstMoves = 3;
-    double inf = Double.POSITIVE_INFINITY;
+    private int bestMove;
+    private final int maxDepth = 8;
+    private final double inf = Double.POSITIVE_INFINITY;
+
+    private final Map<Long, TTEntry> table = new HashMap<>();
+    private int searchDepth;
 
     public CPUPerfect(Grid grid, int maxPlayer) {
         this.grid = grid;
         this.maxPlayer = maxPlayer;
-        if (maxPlayer == 1) {
-            oppPlayer = 2;
-            //firstPlayer = true;
-        } else {
-            oppPlayer = 1;
-            //firstPlayer = false;
-        }
+        this.oppPlayer = (maxPlayer == 1) ? 2 : 1;
     }
 
     @Override
     public int play() {
-        if (firstMoves > 0) {
-            firstMoves--;
-            return 3;
+        BitBoard state = new BitBoard(grid);
+        table.clear();
+        bestMove = -1; // no default column
+
+        for (int depth = 1; depth <= maxDepth; depth++) {
+            searchDepth = depth;
+            minimax(state, depth, -inf, inf, maxPlayer);
         }
-        Grid state = grid.copy();
-        int numsLeft = state.numPositionsLeft();
-        System.out.println(numsLeft);
-        depth = (numsLeft % 4 == 0) ? depth+2 : 
-                (numsLeft % 5 == 0) ? depth+5 : depth;
-        minimax(depth, maxPlayer, state, -inf, inf);
-        System.out.println("bestMove: " + bestMove);
-        System.out.println("depth: " + depth);
+
+        // fall back to the first legal move if search fails
+        if (bestMove == -1) {
+            for (int move : state.orderedMoves()) {
+                bestMove = move;
+                break;
+            }
+        }
         return bestMove;
     }
 
-    private double minimax(int depth, int currentPlayer, Grid state, double alpha, double beta) {
-        // System.out.println(depth);
-        if (depth <= 0 || state.checkWin() != -1) {
-            // System.out.println("depth: " + depth);
-            int lastPlayer = (currentPlayer == 1) ? 2 : 1;
-            double score = evaluate(lastPlayer, state);
-            return score;
+    private double minimax(BitBoard board, int depth, double alpha, double beta, int currentPlayer) {
+        long key = board.key();
+        TTEntry entry = table.get(key);
+        if (entry != null && entry.depth >= depth) {
+            return entry.value;
         }
-        ArrayList<Integer> posMoves = state.posMoves();
-        int potentialMove = 0;
+
+        if (depth == 0 || board.isWin(maxPlayer) || board.isWin(oppPlayer) || board.isDraw()) {
+            double eval = evaluate(board);
+            table.put(key, new TTEntry(eval, depth));
+            return eval;
+        }
 
         if (currentPlayer == maxPlayer) {
             double maxEval = -inf;
-            for (int positionX : posMoves) {
-                state.placePosition(positionX, maxPlayer);
-                double evaluation = Math.max(maxEval, minimax(depth--, oppPlayer, state, alpha, beta));
+            for (int move : board.orderedMoves()) {
+                board.play(move, currentPlayer);
+                double evaluation = minimax(board, depth - 1, alpha, beta, oppPlayer);
+                board.undo(move, currentPlayer);
                 if (evaluation > maxEval) {
                     maxEval = evaluation;
-                    potentialMove = positionX;
+                    if (depth == searchDepth) {
+                        bestMove = move;
+                    }
                 }
-                // System.out.println("maximizer position: " + positionX + " at depth " + depth + " has evaluation of " + maxEval);
-                state.clearPosition(positionX);
                 alpha = Math.max(alpha, evaluation);
-                if (beta <= alpha) {
-                    break;
+                if (alpha >= beta) {
+                    break; // beta cut-off
                 }
             }
-            bestMove = potentialMove;
+            table.put(key, new TTEntry(maxEval, depth));
             return maxEval;
         } else {
             double minEval = inf;
-            for (int positionX : posMoves) {
-                state.placePosition(positionX, currentPlayer);
-                double evaluation = Math.min(minEval, minimax(depth--, maxPlayer, state, alpha, beta));
-                minEval = Math.min(minEval, evaluation);
-                // System.out.println("minimizer position: " + positionX + " at depth " + depth + " has evaluation of " + minEval);
-                state.clearPosition(positionX);
+            for (int move : board.orderedMoves()) {
+                board.play(move, currentPlayer);
+                double evaluation = minimax(board, depth - 1, alpha, beta, maxPlayer);
+                board.undo(move, currentPlayer);
+                if (evaluation < minEval) {
+                    minEval = evaluation;
+                }
                 beta = Math.min(beta, evaluation);
-                if (beta <= alpha) {
-                    break;
+                if (alpha >= beta) {
+                    break; // alpha cut-off
                 }
             }
+            table.put(key, new TTEntry(minEval, depth));
             return minEval;
         }
     }
 
-    private double evaluate(int lastPlayer, Grid state) {
-        int spaces = state.numPositionsLeft();
-        int checkWin = state.checkWin();
-        if (checkWin == 1) {
-            double staticScore = (maxPlayer == lastPlayer) ? spaces + 1 : (-1 * spaces) -1;
-            return staticScore;
+    private double evaluate(BitBoard board) {
+        int empty = board.numEmpty();
+        if (board.isWin(maxPlayer)) {
+            return 1000 + empty; // reward quicker wins
+        }
+        if (board.isWin(oppPlayer)) {
+            return -1000 - empty; // penalise quicker losses
+        }
+
+        // positional heuristic for non-terminal states
+        return evaluateBoard(board, maxPlayer) - evaluateBoard(board, oppPlayer);
+    }
+
+    /**
+     * Evaluate non-terminal positions for the given player.
+     * Rewards windows that contain only the player's pieces and empty cells.
+     */
+    private int evaluateBoard(BitBoard board, int player) {
+        int score = 0;
+
+        // encourage control of the centre column
+        int centre = BitBoard.WIDTH / 2;
+        for (int y = 0; y < BitBoard.HEIGHT; y++) {
+            if (board.get(centre, y) == player) {
+                score += 3;
+            }
+        }
+
+        // horizontal windows
+        for (int y = 0; y < BitBoard.HEIGHT; y++) {
+            for (int x = 0; x < BitBoard.WIDTH - 3; x++) {
+                score += evaluateWindow(board, player, x, y, 1, 0);
+            }
+        }
+        // vertical windows
+        for (int x = 0; x < BitBoard.WIDTH; x++) {
+            for (int y = 0; y < BitBoard.HEIGHT - 3; y++) {
+                score += evaluateWindow(board, player, x, y, 0, 1);
+            }
+        }
+        // positive slope diagonals
+        for (int x = 0; x < BitBoard.WIDTH - 3; x++) {
+            for (int y = 0; y < BitBoard.HEIGHT - 3; y++) {
+                score += evaluateWindow(board, player, x, y, 1, 1);
+            }
+        }
+        // negative slope diagonals
+        for (int x = 0; x < BitBoard.WIDTH - 3; x++) {
+            for (int y = 3; y < BitBoard.HEIGHT; y++) {
+                score += evaluateWindow(board, player, x, y, 1, -1);
+            }
+        }
+        return score;
+    }
+
+    private int evaluateWindow(BitBoard board, int player, int startX, int startY, int dx, int dy) {
+        int countPlayer = 0;
+        int countOpp = 0;
+        for (int i = 0; i < 4; i++) {
+            int cell = board.get(startX + i * dx, startY + i * dy);
+            if (cell == player) {
+                countPlayer++;
+            } else if (cell != 0) {
+                countOpp++;
+            }
+        }
+        if (countOpp == 0 && countPlayer > 0) {
+            switch (countPlayer) {
+                case 1:
+                    return 1;
+                case 2:
+                    return 5;
+                case 3:
+                    return 50;
+                default:
+                    return 0;
+            }
         }
         return 0;
     }
 
-    
+    private static class TTEntry {
+        double value;
+        int depth;
+
+        TTEntry(double value, int depth) {
+            this.value = value;
+            this.depth = depth;
+        }
+    }
 }
