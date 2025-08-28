@@ -10,13 +10,7 @@ public class Grid {
     private int[][] gameGrid;
 
     public Grid() {
-        gameGrid = new int[][]
-        {{0, 0, 0, 0, 0, 0, 0},
-        {2, 1, 0, 0, 0, 0, 1},
-        {1, 2, 0, 0, 1, 2, 2},
-        {2, 2, 1, 2, 1, 2, 1},
-        {1, 1, 2, 2, 2, 1, 1},
-        {1, 2, 1, 1, 2, 1, 2},};
+        gameGrid = new int[ySize][xSize];
     }
 
     public void printGrid() {
@@ -54,12 +48,12 @@ public class Grid {
         int x = lastPlayed[1] = positions[0];
         int y = lastPlayed[0] = positions[1];
 
-        for (int yIndex = 5; yIndex > 0; yIndex--) {
-            if (checkPosition(x, yIndex) == 0) {
-                y = yIndex;
-                break;
-            }
-        }
+        // for (int yIndex = 5; yIndex > 0; yIndex--) {
+        //     if (checkPosition(x, yIndex) == 0) {
+        //         y = yIndex;
+        //         break;
+        //     }
+        // }
 
         gameGrid[y][x] = player;
         return 1;

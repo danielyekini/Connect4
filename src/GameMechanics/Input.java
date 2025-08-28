@@ -2,35 +2,30 @@ package GameMechanics;
 import java.util.Scanner;
 
 public class Input {
-    public static String String(String input_string){
-        Scanner scan = new Scanner(System.in);
-        System.out.print(input_string);
-        
-        String user_input = scan.nextLine();
-        return user_input;
+
+    private Scanner scan;
+
+    public Input() {
+        this.scan = new Scanner(System.in);
     }
 
-    public static char Character(String input_string){
-        Scanner scan = new Scanner(System.in);
+    public String String(String input_string){
         System.out.print(input_string);
-        
-        char user_input = scan.next().charAt(0);
-        return user_input;
+        return scan.nextLine();
     }
 
-    public static int Integer(String input_string){
-        Scanner scan = new Scanner(System.in);
+    public char Character(String input_string){
         System.out.print(input_string);
-        
-        int user_input = scan.nextInt();
-        return user_input;
+        return scan.next().charAt(0);
     }
 
-    public static double Double(String input_string){
-        Scanner scan = new Scanner(System.in);
+    public int Integer(String input_string){
         System.out.print(input_string);
-        
-        double user_input = scan.nextDouble();
-        return user_input;
+        return scan.nextInt();
+    }
+
+    public double Double(String input_string){
+        System.out.print(input_string);
+        return scan.nextDouble();
     }
 }
